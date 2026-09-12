@@ -15,7 +15,7 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
 
-@Path("/clientes")
+@Path("/clients")
 @Produces(MediaType.TEXT_HTML)
 public class ClientController {
 
@@ -25,13 +25,13 @@ public class ClientController {
     @Inject
     ProductRepository productRepository;
 
-    @Location("clientes/index.html")
+    @Location("clients/index.html")
     Template indexTemplate;
 
-    @Location("clientes/form.html")
+    @Location("clients/form.html")
     Template formTemplate;
 
-    @Location("clientes/edit.html")
+    @Location("clients/edit.html")
     Template editTemplate;
 
     @GET
@@ -40,35 +40,35 @@ public class ClientController {
     }
 
     @GET
-    @Path("/nuevo")
+    @Path("/new")
     public TemplateInstance form() {
         return formTemplate.instance();
     }
 
     @POST
-    @Path("/guardar")
+    @Path("/save")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response save(@FormParam("name") String name, @FormParam("email") String email) {
         if (email == null || !email.contains("@")) {
-            throw new BadRequestException("Correo inválido");
+            throw new BadRequestException("Invalid email format");
         }
         Client c = new Client();
         c.setName(name);
         c.setEmail(email);
         clientRepository.save(c);
-        return Response.seeOther(URI.create("/clientes")).build();
+        return Response.seeOther(URI.create("/clients")).build();
     }
 
     @GET
-    @Path("/editar/{id}")
+    @Path("/edit/{id}")
     public TemplateInstance edit(@PathParam("id") Long id) {
         Client client = clientRepository.findByIdOptional(id).orElseThrow(NotFoundException::new);
         return editTemplate.data("client", client).data("products", productRepository.listAll());
     }
 
     @POST
-    @Path("/actualizar/{id}")
+    @Path("/update/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response update(@PathParam("id") Long id,
@@ -78,13 +78,13 @@ public class ClientController {
         Client client = clientRepository.findByIdOptional(id).orElseThrow(NotFoundException::new);
 
         if (email == null || !email.contains("@")) {
-            throw new BadRequestException("Correo inválido");
+            throw new BadRequestException("Invalid email format");
         }
 
         client.setName(name);
         client.setEmail(email);
 
-        // Sincronizar colección
+        // Synchronize collection
         client.getPurchasedProducts().clear();
         if (productIds != null) {
             for (Long pid : productIds) {
@@ -92,15 +92,15 @@ public class ClientController {
                 if (p != null) client.addProduct(p);
             }
         }
-        return Response.seeOther(URI.create("/clientes")).build();
+        return Response.seeOther(URI.create("/clients")).build();
     }
 
     @POST
-    @Path("/eliminar/{id}")
+    @Path("/delete/{id}")
     @Transactional
     public Response delete(@PathParam("id") Long id) {
         Client client = clientRepository.findByIdOptional(id).orElseThrow(NotFoundException::new);
         clientRepository.delete(client);
-        return Response.seeOther(URI.create("/clientes")).build();
+        return Response.seeOther(URI.create("/clients")).build();
     }
 }

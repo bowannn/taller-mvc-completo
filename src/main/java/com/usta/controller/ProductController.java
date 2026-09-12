@@ -12,20 +12,20 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 
-@Path("/productos")
+@Path("/products")
 @Produces(MediaType.TEXT_HTML)
 public class ProductController {
 
     @Inject
     ProductRepository repository;
 
-    @Location("productos/index.html")
+    @Location("products/index.html")
     Template indexTemplate;
 
-    @Location("productos/form.html")
+    @Location("products/form.html")
     Template formTemplate;
 
-    @Location("productos/edit.html")
+    @Location("products/edit.html")
     Template editTemplate;
 
     @GET
@@ -34,37 +34,37 @@ public class ProductController {
     }
 
     @GET
-    @Path("/nuevo")
+    @Path("/new")
     public TemplateInstance form() {
         return formTemplate.instance();
     }
 
     @POST
-    @Path("/guardar")
+    @Path("/save")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response save(@FormParam("name") String name,
                          @FormParam("price") Double price,
                          @FormParam("stock") Integer stock) {
         if (stock == null || stock < 0) {
-            throw new BadRequestException("El stock debe ser un entero mayor o igual a 0");
+            throw new BadRequestException("Stock must be an integer greater than or equal to 0");
         }
         Product p = new Product();
         p.setName(name);
         p.setPrice(price);
         p.setStock(stock);
         repository.persist(p);
-        return Response.seeOther(URI.create("/productos")).build();
+        return Response.seeOther(URI.create("/products")).build();
     }
 
     @GET
-    @Path("/editar/{id}")
+    @Path("/edit/{id}")
     public TemplateInstance edit(@PathParam("id") Long id) {
         return editTemplate.data("product", repository.findById(id));
     }
 
     @POST
-    @Path("/actualizar/{id}")
+    @Path("/update/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response update(@PathParam("id") Long id,
@@ -72,20 +72,20 @@ public class ProductController {
                            @FormParam("price") Double price,
                            @FormParam("stock") Integer stock) {
         if (stock == null || stock < 0) {
-            throw new BadRequestException("El stock debe ser un entero mayor o igual a 0");
+            throw new BadRequestException("Stock must be an integer greater than or equal to 0");
         }
         Product p = repository.findById(id);
         p.setName(name);
         p.setPrice(price);
         p.setStock(stock);
-        return Response.seeOther(URI.create("/productos")).build();
+        return Response.seeOther(URI.create("/products")).build();
     }
 
     @POST
-    @Path("/eliminar/{id}")
+    @Path("/delete/{id}")
     @Transactional
     public Response delete(@PathParam("id") Long id) {
         repository.deleteById(id);
-        return Response.seeOther(URI.create("/productos")).build();
+        return Response.seeOther(URI.create("/products")).build();
     }
 }
