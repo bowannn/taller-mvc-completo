@@ -1,6 +1,8 @@
 package com.usta.controller;
 
+import com.usta.entity.Client;
 import com.usta.entity.Product;
+import com.usta.repository.ClientRepository;
 import com.usta.repository.ProductRepository;
 import io.quarkus.qute.Location;
 import io.quarkus.qute.Template;
@@ -18,6 +20,10 @@ public class ProductController {
 
     @Inject
     ProductRepository repository;
+
+    // Inyectamos el repositorio de clientes para poder desvincular los productos
+    @Inject
+    ClientRepository clientRepository;
 
     @Location("products/index.html")
     Template indexTemplate;
@@ -85,7 +91,16 @@ public class ProductController {
     @Path("/delete/{id}")
     @Transactional
     public Response delete(@PathParam("id") Long id) {
-        repository.deleteById(id);
+        Product p = repository.findById(id);
+        if (p != null) {
+            // 1. Recorremos todos los clientes y les quitamos este producto de su lista
+            for (Client client : clientRepository.listAllClients()) {
+                client.getPurchasedProducts().removeIf(prod -> prod.getId().equals(id));
+            }
+
+            // 2. Ahora que ningún cliente depende de él, podemos borrarlo de forma segura
+            repository.delete(p);
+        }
         return Response.seeOther(URI.create("/products")).build();
     }
 }
