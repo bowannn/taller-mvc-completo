@@ -1,5 +1,6 @@
 package com.usta.controller;
 
+import java.net.URI;
 import com.usta.entity.Client;
 import com.usta.entity.Product;
 import com.usta.repository.ClientRepository;
@@ -9,10 +10,16 @@ import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 
 @Path("/products")
 @Produces(MediaType.TEXT_HTML)
@@ -50,17 +57,23 @@ public class ProductController {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response save(@FormParam("name") String name,
-                         @FormParam("price") Double price,
-                         @FormParam("stock") Integer stock) {
-        if (stock == null || stock < 0) {
-            throw new BadRequestException("Stock must be an integer greater than or equal to 0");
-        }
+                        @FormParam("price") Double price,
+                        @FormParam("stock") Integer stock) {
+        validateStock(stock);
+        
         Product p = new Product();
         p.setName(name);
         p.setPrice(price);
         p.setStock(stock);
         repository.persist(p);
         return Response.seeOther(URI.create("/products")).build();
+    }
+
+    // Nuevo método centralizado para evitar duplicación
+    private void validateStock(Integer stock) {
+        if (stock == null || stock < 0) {
+            throw new BadRequestException("Stock must be an integer greater than or equal to 0");
+        }
     }
 
     @GET
