@@ -1,0 +1,6 @@
+projectKey=Prueba-propia
+serverUrl=http://localhost:9000
+serverVersion=26.9.0.129388
+dashboardUrl=http://localhost:9000/dashboard?id=Prueba-propia
+ceTaskId=f8b8bf83-3692-48bd-b88f-4aaae18a20bb
+ceTaskUrl=http://localhost:9000/api/ce/task?id=f8b8bf83-3692-48bd-b88f-4aaae18a20bb

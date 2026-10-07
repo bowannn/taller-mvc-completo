@@ -36,7 +36,7 @@ public class ClientController {
 
     @GET
     public TemplateInstance index() {
-        return indexTemplate.data("clients", clientRepository.listAllClients());
+        return indexTemplate.data("clients", clientRepository.listAll());
     }
 
     @GET
@@ -56,7 +56,7 @@ public class ClientController {
         Client c = new Client();
         c.setName(name);
         c.setEmail(email);
-        clientRepository.save(c);
+        clientRepository.persist(c);
         return Response.seeOther(URI.create("/clients")).build();
     }
 

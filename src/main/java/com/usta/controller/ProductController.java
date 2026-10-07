@@ -94,7 +94,7 @@ public class ProductController {
         Product p = repository.findById(id);
         if (p != null) {
             // 1. Recorremos todos los clientes y les quitamos este producto de su lista
-            for (Client client : clientRepository.listAllClients()) {
+            for (Client client : clientRepository.listAll()) {
                 client.getPurchasedProducts().removeIf(prod -> prod.getId().equals(id));
             }
 
