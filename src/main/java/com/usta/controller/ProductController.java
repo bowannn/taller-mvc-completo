@@ -100,20 +100,24 @@ public class ProductController {
         return Response.seeOther(URI.create("/products")).build();
     }
 
-    @POST
-    @Path("/delete/{id}")
-    @Transactional
-    public Response delete(@PathParam("id") Long id) {
-        Product p = repository.findById(id);
-        if (p != null) {
-            // 1. Recorremos todos los clientes y les quitamos este producto de su lista
-            for (Client client : clientRepository.listAll()) {
-                client.getPurchasedProducts().removeIf(prod -> prod.getId().equals(id));
+        // 1. En ProductController.java, el método queda simplificado:
+        @POST
+        @Path("/delete/{id}")
+        @Transactional
+        public Response delete(@PathParam("id") Long id) {
+            Product p = repository.findById(id);
+            if (p != null) {
+                removeProductFromAllClients(id);
+                repository.delete(p);
             }
-
-            // 2. Ahora que ningún cliente depende de él, podemos borrarlo de forma segura
-            repository.delete(p);
+            return Response.seeOther(URI.create("/products")).build();
         }
-        return Response.seeOther(URI.create("/products")).build();
-    }
+
+        // 2. En ClientRepository.java, se añade el método con alta cohesión:
+        public void removeProductFromAllClients(Long productId) {
+            clientRepository.listAll().forEach(client -> 
+                client.getPurchasedProducts().removeIf(prod -> prod.getId().equals(productId))
+            );
+        }
+
 }
