@@ -72,19 +72,27 @@ public class ClientController {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Transactional
     public Response update(@PathParam("id") Long id,
-                           @FormParam("name") String name,
-                           @FormParam("email") String email,
-                           @FormParam("productIds") List<Long> productIds) {
+                        @FormParam("name") String name,
+                        @FormParam("email") String email,
+                        @FormParam("productIds") List<Long> productIds) {
         Client client = clientRepository.findByIdOptional(id).orElseThrow(NotFoundException::new);
+        
+        validateEmail(email);
+        
+        client.setName(name);
+        client.setEmail(email);
+        syncPurchasedProducts(client, productIds);
+        
+        return Response.seeOther(URI.create("/clients")).build();
+    }
 
+    private void validateEmail(String email) {
         if (email == null || !email.contains("@")) {
             throw new BadRequestException("Invalid email format");
         }
+    }
 
-        client.setName(name);
-        client.setEmail(email);
-
-        // Synchronize collection
+    private void syncPurchasedProducts(Client client, List<Long> productIds) {
         client.getPurchasedProducts().clear();
         if (productIds != null) {
             for (Long pid : productIds) {
@@ -92,7 +100,6 @@ public class ClientController {
                 if (p != null) client.addProduct(p);
             }
         }
-        return Response.seeOther(URI.create("/clients")).build();
     }
 
     @POST
